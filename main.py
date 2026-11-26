@@ -1,40 +1,45 @@
-"""Make the Judge Laugh in One Line — writes the entry line to /output/entry.txt.
+"""Make the Judge Laugh in One Line — entry writer.
 
-The joke is about a standing desk bought to get healthier: the setup
-promises a lifestyle change, the punchline defeats it in the cheapest
-possible way — same sitting, taller chair. One sentence, concrete,
-the laugh lands at the end.
+The joke: a standing desk bought to get healthier, and the punchline
+undercuts it in the cheapest possible way — same sitting, taller chair.
+One sentence, concrete setup, laugh at the end. This script validates
+the line (single line, at most 200 characters) and writes it to
+/output/entry.txt.
 """
 
 from pathlib import Path
 
-JOKE = "I bought a standing desk to get healthier, and now I just sit on a taller chair."
+PARTS = [
+    "I bought a standing desk to get healthier,",
+    "and now I just sit on a taller chair.",
+]
+ENTRY = " ".join(PARTS)
 
-LIMIT = 200
-TARGET = Path("/output/entry.txt")
+MAX_CHARS = 200
+OUTPUT_PATH = Path("/output/entry.txt")
 
 
-def validate(line):
-    problems = []
+def check_entry(line):
+    issues = []
     if not line.strip():
-        problems.append("blank")
-    if len(line) > LIMIT:
-        problems.append(f"{len(line)} chars over limit {LIMIT}")
-    if line.count("\n") or line.count("\r"):
-        problems.append("must be one line")
+        issues.append("entry is blank")
+    if len(line) > MAX_CHARS:
+        issues.append(f"entry is {len(line)} chars, over the {MAX_CHARS} limit")
+    if "\n" in line or "\r" in line:
+        issues.append("entry must be a single line")
     if line != line.strip():
-        problems.append("leading/trailing whitespace")
-    if any(ord(c) < 32 for c in line):
-        problems.append("control character")
-    if problems:
-        raise ValueError("invalid entry: " + "; ".join(problems))
+        issues.append("entry has leading or trailing whitespace")
+    if any(ord(ch) < 32 for ch in line):
+        issues.append("entry contains a control character")
+    if issues:
+        raise ValueError("invalid entry: " + "; ".join(issues))
 
 
 def main():
-    validate(JOKE)
-    TARGET.parent.mkdir(parents=True, exist_ok=True)
-    TARGET.write_text(JOKE, encoding="utf-8")
-    print(f"wrote {TARGET} ({len(JOKE)} chars)")
+    check_entry(ENTRY)
+    OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
+    OUTPUT_PATH.write_text(ENTRY, encoding="utf-8")
+    print(f"wrote {OUTPUT_PATH} ({len(ENTRY)} chars)")
 
 
 if __name__ == "__main__":
